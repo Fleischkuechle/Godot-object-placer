@@ -7,4 +7,10 @@ There is also a tutorial how to use it.
 
 you can find it here: [https://youtu.be/1zn7dvm7S-0](https://youtu.be/wQkv82QiRjc)
 
+
+
+![Object_placer_fuer_gif_2](https://github.com/Fleischkuechle/Godot-object-placer/assets/45604838/123fe1c4-468d-473f-a29b-07b02875da03)
+
+
+
 ![Godot_object_placer](https://github.com/Fleischkuechle/Godot-object-placer/assets/45604838/e9a48856-e8d8-46b9-a9f3-c35ec7653083)
