@@ -4,3 +4,6 @@ With this tool you can add any packedScene to the terrain by just one mouse clic
 mouse wheel through your assets (packedScens node3Ds) to change the object to place.
 The easiest way to see how it works is just to download the project and test it on your own.
 There is also a tutorial how to use it.
+
+you can find it here: https://youtu.be/1zn7dvm7S-0
+
