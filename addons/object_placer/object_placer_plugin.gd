@@ -5,34 +5,19 @@ extends EditorPlugin
 @onready var marker_node_3d:Node3D
 @onready var ray_cast = RayCast3D.new()
 @onready var new_click_location: Vector2 = Vector2.INF
-@onready var the_cube = preload("res://addons/object_placer/objects/the_cube.tscn")
 @onready var new_intersection_result_dict:Dictionary={}
 @onready var is_mouse_pressed=false
 ##var editorAddon=preload("res://addons/testplugin/objectPlacer.tscn")
 #var dockedScene
 @onready var list_of_Resources:ItemList
 @onready var directoryPath = "res://addons/object_placer/objects/"
-@onready var extension = "tscn"
-@onready var foundPaths=[]
+@onready var extension_tscn = "tscn"
+@onready var extension_blend= "blend"
 @onready var sceens_tscn=[]
 var enteredTree=false
 @onready var last_selected_index:int
 @onready var do_we_have_scenes_available=true
-@onready var process_mouse_wheel_event=false
-#@onready var timer:Timer
-#func dir_contents(path):
-	#var dir = DirAccess.open(path)
-	#if dir:
-		#dir.list_dir_begin()
-		#var file_name:String = dir.get_next()
-		#while file_name != "":
-			#if dir.current_is_dir():
-				#print("Found directory: " + file_name)
-			#else:
-				#print("Found file: " + file_name)
-			#file_name = dir.get_next()
-	#else:
-		#print("An error occurred when trying to access the path.")
+@onready var process_mouse_wheel_event=false #helper to prevent catching too many mouse wheel events
 
 
 func getFilePathsByExtension(directoryPath: String, extension: String, recursive: bool = true) -> Array:
@@ -96,7 +81,6 @@ func preload_sceens(directoryPath: String, extension: String, recursive: bool = 
 		print('no dir ')
 	return sceens_tscn
 
-
 func turn_off_collider(in_node):
 	var Child_nodes_list=[]
 	Child_nodes_list= get_all_children(in_node,Child_nodes_list)
@@ -105,7 +89,6 @@ func turn_off_collider(in_node):
 			child.disabled=true
 		
    #disabling area2d code
-
 
 func get_all_children(in_node,arr=[]):
 	arr.push_back(in_node)
@@ -130,7 +113,11 @@ func _ready() -> void:
 	if enteredTree==true:
 		
 		enteredTree=false
-		sceens_tscn =preload_sceens(directoryPath, extension)
+		var sceens_blend=preload_sceens(directoryPath,extension_blend)		
+		sceens_tscn =preload_sceens(directoryPath, extension_tscn)
+		if len(sceens_blend)>0:
+			sceens_tscn.append_array(sceens_blend)
+		
 		print(sceens_tscn)
 		ray_cast.set_collision_mask_value(1, true)
 		add_child(ray_cast)
@@ -148,7 +135,7 @@ func _ready() -> void:
 		
 		add_child(marker_node_3d)
 		marker_node_3d.hide()
-
+		print('on ready geht')
 		## The line below is required to make the node visible in the Scene tree dock
 		## and persist changes made by the tool script to the saved scene file.
 		#node.owner = get_tree().edited_scene_root
@@ -173,21 +160,26 @@ func _forward_3d_gui_input(camera: Camera3D, event: InputEvent) -> int:
 			is_mouse_pressed=false
 			print('maus released')
 			pass
+		#mouse wheel up with right mouse button pressed
 		if event is InputEventMouseButton and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)==false and event.button_index == 4 and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT): #● MOUSE_BUTTON_WHEEL_UP = 4
-			#is_mouse_pressed=false
+			
 			print('mouse wheel up')
 			if process_mouse_wheel_event==false:
-				#process_mouse_wheel_event=true
 				run_timer()
 				select_scene_up()
 				
 			else:
 				print('skipped one mouse wheel up event because of process_mouse_wheel_event =true')
-			#
-			#pass
+
 		if event is InputEventMouseButton and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)==false and event.button_index == 5 and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):#● MOUSE_BUTTON_WHEEL_DOWN = 5 ● MOUSE_BUTTON_RIGHT = 2
 			#is_mouse_pressed=false
-			print('mouse wheel down')
+			if process_mouse_wheel_event==false:
+				run_timer()
+				select_scene_down()
+				print('mouse wheel down')
+			else:
+				print('skipped one mouse wheel down event because of process_mouse_wheel_event =true')
+
 			pass
 
 			
@@ -222,7 +214,7 @@ func select_scene_up():
 		
 		if is_instance_valid(marker_node_3d):
 			marker_node_3d.queue_free()
-			print('bis hier')
+			#print('bis hier')
 		
 		marker_tscn=sceens_tscn[new_index]
 		marker_node_3d=marker_tscn.instantiate()
@@ -233,7 +225,33 @@ func select_scene_up():
 		last_selected_index=new_index
 		print('new index: ',last_selected_index)
 		
+func select_scene_down():
+	
+	var new_index:int=-1
+	#Checking if we are at the end of the list (array)
+	if last_selected_index==0:
+		new_index=len(sceens_tscn)-1
+	else :
+		new_index=last_selected_index-1	
 
+	#Creating the new marker
+	if new_index !=-1:
+		var temp_position=marker_node_3d.position
+		var temp_rotation=marker_node_3d.rotation
+		
+		if is_instance_valid(marker_node_3d):
+			marker_node_3d.queue_free()
+			#print('bis hier')
+		
+		marker_tscn=sceens_tscn[new_index]
+		marker_node_3d=marker_tscn.instantiate()
+		turn_off_collider(marker_node_3d)
+		add_child(marker_node_3d)
+		marker_node_3d.position=temp_position
+		marker_node_3d.rotation =temp_rotation
+		last_selected_index=new_index
+		print('new index: ',last_selected_index)
+		
 func doTheRaycast(camera: Camera3D):
 	if Engine.is_editor_hint():
 		marker_node_3d.hide()
